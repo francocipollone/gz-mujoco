@@ -30,9 +30,13 @@ def main(argv=None):
                         help="Path to input SDFormat file (World or Model)")
     parser.add_argument("output_file",
                         help="Desired path for the output MJCF file")
+    parser.add_argument("--euler_xyz", action="store_true",
+                        help="Use Euler XYZ angles instead of quaternions and "
+                             "set compiler eulerseq to XYZ")
 
     args = parser.parse_args(argv)
-    return sdformat_file_to_mjcf(args.input_file, args.output_file)
+    return sdformat_file_to_mjcf(args.input_file, args.output_file,
+                                 euler_xyz=args.euler_xyz)
 
 
 if __name__ == "__main__":

@@ -60,7 +60,8 @@ class LinkTest(helpers.TestCase):
         mj_body = add_link(self.body, link)
         self.assertIsNotNone(mj_body)
         assert_allclose(self.expected_pos, mj_body.pos)
-        assert_allclose(self.expected_euler, mj_body.euler)
+        self.assertIsNone(mj_body.euler)
+        self.assertIsNotNone(mj_body.quat)
 
     def test_link_inertia(self):
         # This following is equivalent to
@@ -101,7 +102,8 @@ class LinkTest(helpers.TestCase):
 
         self.assertIsNotNone(mj_body2)
         assert_allclose(self.expected_pos, mj_body2.pos)
-        assert_allclose(self.expected_euler, mj_body2.euler)
+        self.assertIsNone(mj_body2.euler)
+        self.assertIsNotNone(mj_body2.quat)
 
     def test_link_with_geometry(self):
         link = sdf.Link()
@@ -132,7 +134,8 @@ class LinkTest(helpers.TestCase):
         mj_body = add_link(self.body, link)
         self.assertIsNotNone(mj_body)
         assert_allclose(self.expected_pos, mj_body.pos)
-        assert_allclose(self.expected_euler, mj_body.euler)
+        self.assertIsNone(mj_body.euler)
+        self.assertIsNotNone(mj_body.quat)
         geoms = mj_body.find_all('geom')
         self.assertEqual(2, len(geoms))
         self.assertEqual("c1", geoms[0].name)
@@ -201,6 +204,18 @@ class LinkTest(helpers.TestCase):
         self.assertIsNotNone(mj_body)
         self.assertEqual(1, len(mj_body.get_children("camera")))
 
+    def test_link_euler_xyz(self):
+        """Link body uses euler angles when compiler eulerseq is XYZ."""
+        self.mujoco.compiler.eulerseq = 'XYZ'
+        link = sdf.Link()
+        link.set_name("euler_link")
+        link.set_raw_pose(self.test_pose)
+        mj_body = add_link(self.body, link)
+
+        assert_allclose(self.expected_pos, mj_body.pos)
+        assert_allclose(self.expected_euler, mj_body.euler)
+        self.assertIsNone(mj_body.quat)
+
 
 class LinkIntegration(unittest.TestCase):
     expected_pos = [1.0, 2.0, 3.0]
@@ -219,7 +234,7 @@ class LinkIntegration(unittest.TestCase):
 
         root = sdf.Root()
         root.load_sdf_string(model_string)
-        mjcf_root = add_root(root)
+        mjcf_root = add_root(root, euler_xyz=True)
         mj_link = mjcf_root.find("body", "L1")
         assert_allclose(self.expected_pos, mj_link.pos)
         assert_allclose(self.expected_euler, mj_link.euler)

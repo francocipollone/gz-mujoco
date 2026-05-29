@@ -88,6 +88,21 @@ class CLITest(unittest.TestCase):
             self.assertEqual(0, return_code)
             self.assertTrue(os.path.exists(output_file))
 
+    def test_euler_xyz_flag(self):
+        """Test that --euler_xyz sets compiler eulerseq to XYZ in the output."""
+        model_file = TEST_RESOURCES_DIR / "double_pendulum.sdf"
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_file = path.join(temp_dir, "double_pendulum_euler.xml")
+            return_code = cli.main(
+                [str(model_file), output_file, "--euler_xyz"])
+            self.assertEqual(0, return_code)
+            self.assertTrue(os.path.exists(output_file))
+
+            # Verify the output contains the eulerseq compiler attribute
+            with open(output_file) as f:
+                content = f.read()
+            self.assertIn("eulerseq", content)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -42,10 +42,13 @@ def add_sensor(body, sensor):
         # Creates a site inside the body with the same name as sensor. This
         # site will be used to attach the actual sensor to the body.
         site_unique_name = su.find_unique_name(body, "site", sensor.name())
+        use_euler = body.root.compiler.eulerseq == 'XYZ'
+        rot_kwargs = ({"euler": su.quat_to_euler_list(pose.rot())}
+                     if use_euler else {"quat": su.quat_to_list(pose.rot())})
         body.add("site",
                  name=site_unique_name,
                  pos=su.vec3d_to_list(pose.pos()),
-                 quat=su.quat_to_list(pose.rot()))
+                 **rot_kwargs)
 
         if sensor.imu_sensor() is not None:
             return _add_imu(body.root.sensor,
@@ -213,8 +216,11 @@ def _add_camera_sensor(body, camera_sensor, sensor_name, sensor_pose):
         "Converting an SDFormat Camera sensor. Beware that the conversion is "
         "very rudimentary and most SDFormat parameters are not mapped to MJCF."
     )
+    use_euler = body.root.compiler.eulerseq == 'XYZ'
+    rot_kwargs = ({"euler": su.quat_to_euler_list(sensor_pose.rot())}
+                 if use_euler else {"quat": su.quat_to_list(sensor_pose.rot())})
     mj_camera = body.add("camera",
                          name=camera_name,
                          pos=su.vec3d_to_list(sensor_pose.pos()),
-                         quat=su.quat_to_list(sensor_pose.rot()))
+                         **rot_kwargs)
     return mj_camera

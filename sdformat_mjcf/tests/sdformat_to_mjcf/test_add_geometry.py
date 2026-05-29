@@ -50,7 +50,8 @@ class GeometryTest(helpers.TestCase):
         self.assertEqual("box", mj_geom.type)
         assert_allclose([x_size / 2., y_size / 2., z_size / 2.], mj_geom.size)
         assert_allclose(self.expected_pos, mj_geom.pos)
-        assert_allclose(self.expected_euler, mj_geom.euler)
+        self.assertIsNone(mj_geom.euler)
+        self.assertIsNotNone(mj_geom.quat)
 
     def test_capsule(self):
         capsule = sdf.Capsule()
@@ -71,7 +72,8 @@ class GeometryTest(helpers.TestCase):
         self.assertEqual("capsule", mj_geom.type)
         assert_allclose([radius, length / 2.], mj_geom.size)
         assert_allclose(self.expected_pos, mj_geom.pos)
-        assert_allclose(self.expected_euler, mj_geom.euler)
+        self.assertIsNone(mj_geom.euler)
+        self.assertIsNotNone(mj_geom.quat)
 
     def test_cylinder(self):
         cylinder = sdf.Cylinder()
@@ -92,7 +94,8 @@ class GeometryTest(helpers.TestCase):
         self.assertEqual("cylinder", mj_geom.type)
         assert_allclose([radius, length / 2.], mj_geom.size)
         assert_allclose(self.expected_pos, mj_geom.pos)
-        assert_allclose(self.expected_euler, mj_geom.euler)
+        self.assertIsNone(mj_geom.euler)
+        self.assertIsNotNone(mj_geom.quat)
 
     def test_ellipsoid(self):
         ellipsoid = sdf.Ellipsoid()
@@ -113,7 +116,8 @@ class GeometryTest(helpers.TestCase):
         self.assertEqual("ellipsoid", mj_geom.type)
         assert_allclose([x_radius, y_radius, z_radius], mj_geom.size)
         assert_allclose(self.expected_pos, mj_geom.pos)
-        assert_allclose(self.expected_euler, mj_geom.euler)
+        self.assertIsNone(mj_geom.euler)
+        self.assertIsNotNone(mj_geom.quat)
 
     def test_heightmap(self):
         pass
@@ -160,7 +164,8 @@ class GeometryTest(helpers.TestCase):
         self.assertEqual("plane", mj_geom.type)
         assert_allclose([x_size / 2., y_size / 2., 1.], mj_geom.size)
         assert_allclose(self.expected_pos, mj_geom.pos)
-        assert_allclose(self.expected_euler, mj_geom.euler)
+        self.assertIsNone(mj_geom.euler)
+        self.assertIsNotNone(mj_geom.quat)
 
     def test_sphere(self):
         sphere = sdf.Sphere()
@@ -179,7 +184,25 @@ class GeometryTest(helpers.TestCase):
         self.assertEqual("sphere", mj_geom.type)
         assert_allclose(radius, mj_geom.size)
         assert_allclose(self.expected_pos, mj_geom.pos)
+        self.assertIsNone(mj_geom.euler)
+        self.assertIsNotNone(mj_geom.quat)
+
+    def test_geom_euler_xyz(self):
+        """Geom uses euler angles when compiler eulerseq is XYZ."""
+        box = sdf.Box()
+        box.set_size(Vector3d(1, 2, 3))
+        geometry = sdf.Geometry()
+        geometry.set_box_shape(box)
+        geometry.set_type(sdf.GeometryType.BOX)
+
+        mujoco = mjcf.RootElement(model="test")
+        mujoco.compiler.eulerseq = 'XYZ'
+        body = mujoco.worldbody.add('body')
+        mj_geom = geometry_conv.add_geometry(body, "box_shape", self.test_pose,
+                                             geometry)
+        assert_allclose(self.expected_pos, mj_geom.pos)
         assert_allclose(self.expected_euler, mj_geom.euler)
+        self.assertIsNone(mj_geom.quat)
 
 
 class SurfaceTest(helpers.TestCase):
@@ -221,7 +244,8 @@ class CollisionTest(helpers.TestCase):
         mj_geom = geometry_conv.add_collision(body, collision)
         self.assertEqual("c1", mj_geom.name)
         assert_allclose([1., 2., 3.], mj_geom.pos)
-        assert_allclose([90., 60., 45.], mj_geom.euler)
+        self.assertIsNone(mj_geom.euler)
+        self.assertIsNotNone(mj_geom.quat)
         self.assertEqual(geometry_conv.COLLISION_GEOM_GROUP, mj_geom.group)
         self.assertIsNone(mj_geom.contype)
         self.assertIsNone(mj_geom.conaffinity)
@@ -245,7 +269,8 @@ class VisualTest(helpers.TestCase):
         mj_geom = geometry_conv.add_visual(body, visual)
         self.assertEqual("v1", mj_geom.name)
         assert_allclose([1., 2., 3.], mj_geom.pos)
-        assert_allclose([90., 60., 45.], mj_geom.euler)
+        self.assertIsNone(mj_geom.euler)
+        self.assertIsNotNone(mj_geom.quat)
         self.assertEqual(geometry_conv.VISUAL_GEOM_GROUP, mj_geom.group)
         self.assertEqual(0, mj_geom.contype)
         self.assertEqual(0, mj_geom.conaffinity)

@@ -57,10 +57,13 @@ def add_link(body, link, parent_name="world", link_pose=None, link_name=None):
             pose = su.graph_resolver.resolve_pose(sem_pose, parent_name)
 
     link_name = link_name if link_name else link.name()
+    use_euler = body.root.compiler.eulerseq == 'XYZ'
+    rot_kwargs = ({"euler": su.quat_to_euler_list(pose.rot())}
+                 if use_euler else {"quat": su.quat_to_list(pose.rot())})
     body = body.add("body",
                     name=su.find_unique_name(body, "body", link_name),
                     pos=su.vec3d_to_list(pose.pos()),
-                    quat=su.quat_to_list(pose.rot()))
+                    **rot_kwargs)
 
     # SDFormat allows specifying diagonal and off-diagonal terms of the inertia
     # matrix in addition to setting the orientation of the inertia frame.

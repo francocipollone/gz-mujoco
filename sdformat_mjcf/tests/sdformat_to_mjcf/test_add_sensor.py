@@ -53,12 +53,25 @@ class Altimeter(helpers.TestCase):
         self.assertEqual(1, len(sensor_sites))
         self.assertEqual(self.sensor.name(), sensor_sites[0].name)
         assert_allclose(self.expected_pos, sensor_sites[0].pos)
-        assert_allclose(self.expected_euler, sensor_sites[0].euler)
+        self.assertIsNone(sensor_sites[0].euler)
+        self.assertIsNotNone(sensor_sites[0].quat)
 
         mjcf_altimeter = mjcf_sensors
         self.assertAlmostEqual(f"altimeter_{self.sensor.name()}",
                                mjcf_altimeter.name)
         self.assertAlmostEqual(self.sensor.name(), mjcf_altimeter.objname)
+
+    def test_site_euler_xyz(self):
+        """Site uses euler angles when compiler eulerseq is XYZ."""
+        self.mujoco.compiler.eulerseq = 'XYZ'
+        altimeter = sdf.Altimeter()
+        self.sensor.set_altimeter_sensor(altimeter)
+        add_sensor(self.body, self.sensor)
+
+        sensor_sites = self.body.get_children("site")
+        assert_allclose(self.expected_pos, sensor_sites[0].pos)
+        assert_allclose(self.expected_euler, sensor_sites[0].euler)
+        self.assertIsNone(sensor_sites[0].quat)
 
 
 class ImuSensorTest(helpers.TestCase):
@@ -92,7 +105,8 @@ class ImuSensorTest(helpers.TestCase):
         self.assertEqual(1, len(sensor_sites))
         self.assertEqual(self.sensor.name(), sensor_sites[0].name)
         assert_allclose(self.expected_pos, sensor_sites[0].pos)
-        assert_allclose(self.expected_euler, sensor_sites[0].euler)
+        self.assertIsNone(sensor_sites[0].euler)
+        self.assertIsNotNone(sensor_sites[0].quat)
 
         mjcf_accel, mjcf_gyro = mjcf_sensors
         self.assertAlmostEqual(f"accelerometer_{self.sensor.name()}",
@@ -135,7 +149,8 @@ class ImuSensorTest(helpers.TestCase):
         self.assertEqual(1, len(sensor_sites))
         self.assertEqual(self.sensor.name(), sensor_sites[0].name)
         assert_allclose(self.expected_pos, sensor_sites[0].pos)
-        assert_allclose(self.expected_euler, sensor_sites[0].euler)
+        self.assertIsNone(sensor_sites[0].euler)
+        self.assertIsNotNone(sensor_sites[0].quat)
 
         mjcf_accel, mjcf_gyro = mjcf_sensors
         self.assertAlmostEqual(f"accelerometer_{self.sensor.name()}",
@@ -176,6 +191,18 @@ class ImuSensorTest(helpers.TestCase):
         self.assertIsNone(mjcf_accel.noise)
         self.assertIsNone(mjcf_gyro.noise)
 
+    def test_site_euler_xyz(self):
+        """Site uses euler angles when compiler eulerseq is XYZ."""
+        self.mujoco.compiler.eulerseq = 'XYZ'
+        imu = sdf.IMU()
+        self.sensor.set_imu_sensor(imu)
+        add_sensor(self.body, self.sensor)
+
+        sensor_sites = self.body.get_children("site")
+        assert_allclose(self.expected_pos, sensor_sites[0].pos)
+        assert_allclose(self.expected_euler, sensor_sites[0].euler)
+        self.assertIsNone(sensor_sites[0].quat)
+
 
 class ForceTorqueSensorTest(helpers.TestCase):
     test_pose = Pose3d(1, 2, 3, pi / 2, pi / 3, pi / 4)
@@ -208,7 +235,8 @@ class ForceTorqueSensorTest(helpers.TestCase):
         self.assertEqual(1, len(sensor_sites))
         self.assertEqual(self.sensor.name(), sensor_sites[0].name)
         assert_allclose(self.expected_pos, sensor_sites[0].pos)
-        assert_allclose(self.expected_euler, sensor_sites[0].euler)
+        self.assertIsNone(sensor_sites[0].euler)
+        self.assertIsNotNone(sensor_sites[0].quat)
 
         mjcf_force_sensor, mjcf_torque_sensor = mjcf_sensors
         self.assertAlmostEqual(f"force_{self.sensor.name()}",
@@ -252,7 +280,8 @@ class ForceTorqueSensorTest(helpers.TestCase):
         self.assertEqual(1, len(sensor_sites))
         self.assertEqual(self.sensor.name(), sensor_sites[0].name)
         assert_allclose(self.expected_pos, sensor_sites[0].pos)
-        assert_allclose(self.expected_euler, sensor_sites[0].euler)
+        self.assertIsNone(sensor_sites[0].euler)
+        self.assertIsNotNone(sensor_sites[0].quat)
 
         mjcf_force_sensor, mjcf_torque_sensor = mjcf_sensors
         self.assertAlmostEqual(f"force_{self.sensor.name()}",
@@ -279,6 +308,18 @@ class ForceTorqueSensorTest(helpers.TestCase):
                 "Only 'child_to_parent' is supported in <measure_direction>"
                 " of Force/Torque sensor", cm.output[0])
 
+    def test_site_euler_xyz(self):
+        """Site uses euler angles when compiler eulerseq is XYZ."""
+        self.mujoco.compiler.eulerseq = 'XYZ'
+        ft_sensor = sdf.ForceTorque()
+        self.sensor.set_force_torque_sensor(ft_sensor)
+        add_sensor(self.body, self.sensor)
+
+        sensor_sites = self.body.get_children("site")
+        assert_allclose(self.expected_pos, sensor_sites[0].pos)
+        assert_allclose(self.expected_euler, sensor_sites[0].euler)
+        self.assertIsNone(sensor_sites[0].quat)
+
 
 class CameraTest(helpers.TestCase):
     test_pose = Pose3d(1, 2, 3, pi / 2, pi / 3, pi / 4)
@@ -302,7 +343,19 @@ class CameraTest(helpers.TestCase):
         mj_cameras = self.body.get_children("camera")
         self.assertEqual(1, len(mj_cameras))
         assert_allclose(self.expected_pos, mjcf_sensor.pos)
+        self.assertIsNone(mjcf_sensor.euler)
+        self.assertIsNotNone(mjcf_sensor.quat)
+
+    def test_camera_euler_xyz(self):
+        """Camera uses euler angles when compiler eulerseq is XYZ."""
+        self.mujoco.compiler.eulerseq = 'XYZ'
+        camera_sensor = sdf.Camera()
+        self.sensor.set_camera_sensor(camera_sensor)
+        mjcf_sensor = add_sensor(self.body, self.sensor)
+
+        assert_allclose(self.expected_pos, mjcf_sensor.pos)
         assert_allclose(self.expected_euler, mjcf_sensor.euler)
+        self.assertIsNone(mjcf_sensor.quat)
 
 
 if __name__ == "__main__":

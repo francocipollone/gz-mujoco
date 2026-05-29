@@ -20,12 +20,14 @@ from dm_control.mjcf.export_with_assets import export_with_assets
 from sdformat_mjcf.sdformat_to_mjcf.converters.root import add_root
 
 
-def sdformat_file_to_mjcf(input_file, output_file):
+def sdformat_file_to_mjcf(input_file, output_file, euler_xyz=False):
     """
     Loads an SDFormat input file and converts to MJCF.
     :param str input_file: Path to input SDFormat Model or World file
     :param str output_file: Path to output MJCF file. Any generated artifacts,
     such as meshes will be output to the directory containing the output file.
+    :param bool euler_xyz: If True, use Euler XYZ angles instead of quaternions
+    and set the MJCF compiler eulerseq to 'XYZ'.
     """
     root = sdf.Root()
     try:
@@ -43,7 +45,7 @@ def sdformat_file_to_mjcf(input_file, output_file):
         previous_cwd = os.getcwd()
         try:
             os.chdir(input_dir)
-            mjcf_root = add_root(root)
+            mjcf_root = add_root(root, euler_xyz=euler_xyz)
             mjcf_root.default.dclass = "unused"
             export_with_assets(mjcf_root, output_dir, file_name)
         finally:

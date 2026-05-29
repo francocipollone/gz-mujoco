@@ -18,15 +18,19 @@ from sdformat_mjcf.sdformat_to_mjcf.converters.model import add_model
 from sdformat_mjcf.sdformat_to_mjcf.converters.world import add_world
 
 
-def add_root(root):
+def add_root(root, euler_xyz=False):
     """
     Converts an SDFormat Root object to MJCF.
 
     :param sdformat.Root root: The SDFormat root to be converted.
+    :param bool euler_xyz: If True, set compiler eulerseq to 'XYZ' and use
+    Euler angles instead of quaternions for rotations.
     :return: The newly created MJCF root element.
     :rtype: mjcf.RootElement
     """
     mjcf_root = mjcf.RootElement()
+    if euler_xyz:
+        mjcf_root.compiler.eulerseq = 'XYZ'
     if root.model():
         mjcf_root.model = root.model().name()
     elif root.world_count() == 1:
