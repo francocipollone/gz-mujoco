@@ -49,8 +49,11 @@ class WorldTest(helpers.TestCase):
 
         assert_allclose([0, 0, 0.5],
                         self.mujoco.worldbody.body[1].pos, rtol=1e-4)
-        assert_allclose([0, 0, 0],
-                        self.mujoco.worldbody.body[1].euler)
+        # Both models have identity rotation in lights.sdf; the converter emits
+        # `quat` (not `euler`) by default, so check the identity quaternion.
+        self.assertIsNone(self.mujoco.worldbody.body[1].euler)
+        assert_allclose(su.euler_list_to_quat_wxyz([0, 0, 0]),
+                        self.mujoco.worldbody.body[1].quat)
         self.assertEqual(2, len(self.mujoco.worldbody.body[1].geom))
         self.assertEqual("box_visual",
                          self.mujoco.worldbody.body[1].geom[1].name)
@@ -63,8 +66,9 @@ class WorldTest(helpers.TestCase):
 
         assert_allclose([0, 1.5, 0.5],
                         self.mujoco.worldbody.body[2].pos, rtol=1e-4)
-        assert_allclose([0, 0, 0],
-                        self.mujoco.worldbody.body[2].euler)
+        self.assertIsNone(self.mujoco.worldbody.body[2].euler)
+        assert_allclose(su.euler_list_to_quat_wxyz([0, 0, 0]),
+                        self.mujoco.worldbody.body[2].quat)
         self.assertEqual(2, len(self.mujoco.worldbody.body[1].geom))
         self.assertEqual("sphere_visual",
                          self.mujoco.worldbody.body[2].geom[1].name)

@@ -30,6 +30,9 @@ class ModelTest(helpers.TestCase):
     test_pose = Pose3d(1, 2, 3, pi / 2, pi / 3, pi / 4)
     expected_pos = [1.0, 2.0, 3.0]
     expected_euler = [90.0, 60.0, 45.0]
+    # The converter emits `quat` (not `euler`) by default, so the test
+    # checks the equivalent wxyz quaternion.
+    expected_quat = su.euler_list_to_quat_wxyz(expected_euler)
 
     def setUp(self):
         self.mujoco = mjcf.RootElement(model="test")
@@ -50,7 +53,8 @@ class ModelTest(helpers.TestCase):
         self.assertEqual("base_link", mj_bodies[0].name)
 
         assert_allclose(self.expected_pos, mj_bodies[0].pos)
-        assert_allclose(self.expected_euler, mj_bodies[0].euler)
+        self.assertIsNone(mj_bodies[0].euler)
+        assert_allclose(self.expected_quat, mj_bodies[0].quat)
 
     def test_model_multiple_floating_links(self):
         model_raw_pose = self.test_pose
@@ -348,21 +352,31 @@ class ModelIntegrationTest(unittest.TestCase):
         mj_root = add_root(root)
         self.assertIsNotNone(mj_root)
 
-        # Copied from arm.urdf
+        # Copied from arm.urdf. The converter emits `quat` (not `euler`) by
+        # default, so we compare against the equivalent wxyz quaternion.
         expected_poses = {
-            'link_1': {'pos': [0, 0, 0.1], 'euler': [0.0, 0, 0]},
-            'link_2': {'pos': [0, 0, 0.2], 'euler': [0.0, 0, 0]},
-            'link_3': {'pos': [0, 0, 0.4], 'euler': [0.0, 90.0, 0]},
-            'link_4': {'pos': [0, 0, 0.35], 'euler': [0.0, 0.0, 0]},
-            'link_5': {'pos': [0, 0, 0.06], 'euler': [0.0, 0.0, 0]},
-            'link_6': {'pos': [0, 0, 0.08], 'euler': [0.0, 0.0, 0]},
+            'link_1': {'pos': [0, 0, 0.1],
+                       'quat': su.euler_list_to_quat_wxyz([0.0, 0, 0])},
+            'link_2': {'pos': [0, 0, 0.2],
+                       'quat': su.euler_list_to_quat_wxyz([0.0, 0, 0])},
+            'link_3': {'pos': [0, 0, 0.4],
+                       'quat': su.euler_list_to_quat_wxyz([0.0, 90.0, 0])},
+            'link_4': {'pos': [0, 0, 0.35],
+                       'quat': su.euler_list_to_quat_wxyz([0.0, 0.0, 0])},
+            'link_5': {'pos': [0, 0, 0.06],
+                       'quat': su.euler_list_to_quat_wxyz([0.0, 0.0, 0])},
+            'link_6': {'pos': [0, 0, 0.08],
+                       'quat': su.euler_list_to_quat_wxyz([0.0, 0.0, 0])},
         }
         for link, expectations in expected_poses.items():
             mj_body = mj_root.find("body", link)
-            pos = getattr(mj_body, "pos", [0.0, 0, 0])
-            euler = getattr(mj_body, "euler", [0.0, 0, 0])
+            # `pos` may not be set on bodies with identity position; in that
+            # case dm_control returns None rather than omitting the attribute.
+            pos = mj_body.pos if mj_body.pos is not None else [0.0, 0, 0]
             assert_allclose(pos, expectations['pos'], atol=1e-10)
-            assert_allclose(euler, expectations['euler'], atol=0.2)
+            # The converter always emits `quat` (not `euler`) unless
+            # compiler.eulerseq is 'XYZ'.
+            assert_allclose(mj_body.quat, expectations['quat'], atol=0.2)
 
 
 if __name__ == "__main__":

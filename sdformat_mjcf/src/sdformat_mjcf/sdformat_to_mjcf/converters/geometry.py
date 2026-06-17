@@ -38,9 +38,7 @@ def add_geometry(body, name, pose, sdf_geom):
 
     if sdf_geom is None:
         return
-    use_euler = body.root.compiler.eulerseq == 'XYZ'
-    rot_kwargs = ({"euler": su.quat_to_euler_list(pose.rot())}
-                 if use_euler else {"quat": su.quat_to_list(pose.rot())})
+    rot_kwargs = su.get_rotation_kwargs(body, pose.rot())
     geom = body.add(
         "geom",
         name=su.find_unique_name(body, "geom", name),

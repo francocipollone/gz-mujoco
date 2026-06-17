@@ -303,7 +303,19 @@ class JointTest(helpers.TestCase):
             sensor_sites = child_body.get_children("site")
             self.assertEqual(1, len(sensor_sites))
             assert_allclose(frame_pos, sensor_sites[0].pos)
-            assert_allclose(frame_euler, sensor_sites[0].euler)
+            # add_sensor emits `quat` (not `euler`) by default, but
+            # add_joint overrides the site with `euler` for PARENT/CHILD
+            # frames. Check the attribute that the chosen frame path sets.
+            if frame == FTF.SENSOR:
+                self.assertIsNone(sensor_sites[0].euler)
+                expected_quat = su.euler_list_to_quat_wxyz(
+                    np.asarray(frame_euler, dtype=float).tolist())
+                assert_allclose(expected_quat, sensor_sites[0].quat)
+            else:
+                # For PARENT/CHILD, add_joint writes `euler` after the fact;
+                # dm_control retains the previously-set `quat` even though
+                # both attributes now describe the same rotation.
+                assert_allclose(frame_euler, sensor_sites[0].euler)
 
 
 if __name__ == "__main__":

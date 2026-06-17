@@ -131,6 +131,41 @@ def quat_to_euler_list(quat):
     return [math.degrees(val) for val in vec3d_to_list(quat.euler())]
 
 
+def get_rotation_kwargs(element, quat):
+    """
+    Build the kwargs used to set the rotation attribute of an MJCF element
+    from a quaternion. Uses ``euler`` when ``element.root.compiler.eulerseq``
+    is ``'XYZ'``, otherwise uses ``quat``.
+
+    :param mjcf.Element element: An MJCF element whose ``root.compiler.eulerseq``
+        is consulted to decide which attribute to emit.
+    :param gz.math.Quaterniond quat: Rotation to encode.
+    :return: A dict containing either ``{'euler': list[float]}`` or
+        ``{'quat': list[float]}`` ready to be splatted into ``mjcf.Element.add``.
+    :rtype: dict
+    """
+    if element.root.compiler.eulerseq == 'XYZ':
+        return {"euler": quat_to_euler_list(quat)}
+    return {"quat": quat_to_list(quat)}
+
+
+def euler_list_to_quat_wxyz(euler_list):
+    """
+    Convert a list of Euler angles in degrees to a wxyz quaternion list.
+
+    This is the inverse of :func:`quat_to_euler_list` and round-trips through
+    :class:`gz.math.Pose3d` so it produces the same quat the converter would
+    emit via :func:`get_rotation_kwargs` for the same input rotation.
+
+    :param list[float] euler_list: ``[roll, pitch, yaw]`` in degrees.
+    :return: Quaternion components in ``wxyz`` order.
+    :rtype: list[float]
+    """
+    rad = [math.radians(v) for v in euler_list]
+    pose = Pose3d(0.0, 0.0, 0.0, rad[0], rad[1], rad[2])
+    return quat_to_list(pose.rot())
+
+
 def wxyz_list_to_quat(quat):
     """
     Convert a Quaternion list defined as wxyz to a gz.math.Quateriond.

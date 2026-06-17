@@ -29,6 +29,15 @@ class Altimeter(helpers.TestCase):
     test_pose = Pose3d(1, 2, 3, pi / 2, pi / 3, pi / 4)
     expected_pos = [1.0, 2.0, 3.0]
     expected_euler = [90.0, 60.0, 45.0]
+    # Expected quaternion (wxyz) corresponding to roll=pi/2, pitch=pi/3,
+    # yaw=pi/4. Matches the wxyz order used by MJCF `<site>`/`quat` and
+    # by `sdformat_mjcf.utils.sdf_utils.quat_to_list`.
+    expected_quat = [
+        0.701057384649978,
+        0.4304593345768794,
+        0.560985526796931,
+        -0.09229595564125716,
+    ]
 
     def setUp(self):
         self.mujoco = mjcf.RootElement(model="test")
@@ -54,7 +63,7 @@ class Altimeter(helpers.TestCase):
         self.assertEqual(self.sensor.name(), sensor_sites[0].name)
         assert_allclose(self.expected_pos, sensor_sites[0].pos)
         self.assertIsNone(sensor_sites[0].euler)
-        self.assertIsNotNone(sensor_sites[0].quat)
+        assert_allclose(self.expected_quat, sensor_sites[0].quat)
 
         mjcf_altimeter = mjcf_sensors
         self.assertAlmostEqual(f"altimeter_{self.sensor.name()}",
@@ -78,6 +87,15 @@ class ImuSensorTest(helpers.TestCase):
     test_pose = Pose3d(1, 2, 3, pi / 2, pi / 3, pi / 4)
     expected_pos = [1.0, 2.0, 3.0]
     expected_euler = [90.0, 60.0, 45.0]
+    # Expected quaternion (wxyz) corresponding to roll=pi/2, pitch=pi/3,
+    # yaw=pi/4. Matches the wxyz order used by MJCF `<site>`/`quat` and
+    # by `sdformat_mjcf.utils.sdf_utils.quat_to_list`.
+    expected_quat = [
+        0.701057384649978,
+        0.4304593345768794,
+        0.560985526796931,
+        -0.09229595564125716,
+    ]
 
     def setUp(self):
         self.mujoco = mjcf.RootElement(model="test")
@@ -106,7 +124,7 @@ class ImuSensorTest(helpers.TestCase):
         self.assertEqual(self.sensor.name(), sensor_sites[0].name)
         assert_allclose(self.expected_pos, sensor_sites[0].pos)
         self.assertIsNone(sensor_sites[0].euler)
-        self.assertIsNotNone(sensor_sites[0].quat)
+        assert_allclose(self.expected_quat, sensor_sites[0].quat)
 
         mjcf_accel, mjcf_gyro = mjcf_sensors
         self.assertAlmostEqual(f"accelerometer_{self.sensor.name()}",
@@ -150,7 +168,7 @@ class ImuSensorTest(helpers.TestCase):
         self.assertEqual(self.sensor.name(), sensor_sites[0].name)
         assert_allclose(self.expected_pos, sensor_sites[0].pos)
         self.assertIsNone(sensor_sites[0].euler)
-        self.assertIsNotNone(sensor_sites[0].quat)
+        assert_allclose(self.expected_quat, sensor_sites[0].quat)
 
         mjcf_accel, mjcf_gyro = mjcf_sensors
         self.assertAlmostEqual(f"accelerometer_{self.sensor.name()}",
@@ -208,6 +226,15 @@ class ForceTorqueSensorTest(helpers.TestCase):
     test_pose = Pose3d(1, 2, 3, pi / 2, pi / 3, pi / 4)
     expected_pos = [1.0, 2.0, 3.0]
     expected_euler = [90.0, 60.0, 45.0]
+    # Expected quaternion (wxyz) corresponding to roll=pi/2, pitch=pi/3,
+    # yaw=pi/4. Matches the wxyz order used by MJCF `<site>`/`quat` and
+    # by `sdformat_mjcf.utils.sdf_utils.quat_to_list`.
+    expected_quat = [
+        0.701057384649978,
+        0.4304593345768794,
+        0.560985526796931,
+        -0.09229595564125716,
+    ]
 
     def setUp(self):
         self.mujoco = mjcf.RootElement(model="test")
@@ -236,7 +263,7 @@ class ForceTorqueSensorTest(helpers.TestCase):
         self.assertEqual(self.sensor.name(), sensor_sites[0].name)
         assert_allclose(self.expected_pos, sensor_sites[0].pos)
         self.assertIsNone(sensor_sites[0].euler)
-        self.assertIsNotNone(sensor_sites[0].quat)
+        assert_allclose(self.expected_quat, sensor_sites[0].quat)
 
         mjcf_force_sensor, mjcf_torque_sensor = mjcf_sensors
         self.assertAlmostEqual(f"force_{self.sensor.name()}",
@@ -281,7 +308,7 @@ class ForceTorqueSensorTest(helpers.TestCase):
         self.assertEqual(self.sensor.name(), sensor_sites[0].name)
         assert_allclose(self.expected_pos, sensor_sites[0].pos)
         self.assertIsNone(sensor_sites[0].euler)
-        self.assertIsNotNone(sensor_sites[0].quat)
+        assert_allclose(self.expected_quat, sensor_sites[0].quat)
 
         mjcf_force_sensor, mjcf_torque_sensor = mjcf_sensors
         self.assertAlmostEqual(f"force_{self.sensor.name()}",
@@ -325,6 +352,15 @@ class CameraTest(helpers.TestCase):
     test_pose = Pose3d(1, 2, 3, pi / 2, pi / 3, pi / 4)
     expected_pos = [1.0, 2.0, 3.0]
     expected_euler = [90.0, 60.0, 45.0]
+    # Expected quaternion (wxyz) corresponding to roll=pi/2, pitch=pi/3,
+    # yaw=pi/4. Matches the wxyz order used by MJCF `<camera>`/`quat` and
+    # by `sdformat_mjcf.utils.sdf_utils.quat_to_list`.
+    expected_quat = [
+        0.701057384649978,
+        0.4304593345768794,
+        0.560985526796931,
+        -0.09229595564125716,
+    ]
 
     def setUp(self):
         self.mujoco = mjcf.RootElement(model="test")
@@ -344,7 +380,7 @@ class CameraTest(helpers.TestCase):
         self.assertEqual(1, len(mj_cameras))
         assert_allclose(self.expected_pos, mjcf_sensor.pos)
         self.assertIsNone(mjcf_sensor.euler)
-        self.assertIsNotNone(mjcf_sensor.quat)
+        assert_allclose(self.expected_quat, mjcf_sensor.quat)
 
     def test_camera_euler_xyz(self):
         """Camera uses euler angles when compiler eulerseq is XYZ."""
